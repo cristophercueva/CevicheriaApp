@@ -84,34 +84,120 @@ class _RegistrarPlatoState extends State<RegistrarPlato> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Registrar Plato')),
+      backgroundColor: const Color(0xFFF9F9F9),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF111418)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Registrar Plato',
+          style: TextStyle(
+            color: Color(0xFF111418),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _nombreController,
-              decoration: InputDecoration(labelText: 'Nombre del Plato'),
-            ),
-            TextField(
-              controller: _precioController,
-              decoration: InputDecoration(labelText: 'Precio'),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-            ),
+            _inputLabel('Nombre del Plato'),
+            _customTextField(_nombreController, 'Ej: Ceviche Mixto'),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _guardarPlato,
-              child: Text(
-                widget.PlatoExistente != null
-                    ? 'Actualizar Plato'
-                    : 'Guardar Plato',
+            _inputLabel('Precio'),
+            _customTextField(
+              _precioController,
+              '0.00',
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              prefixText: 'S/ ',
+            ),
+            SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF3F7FBF),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _guardarPlato,
+                child: Text(
+                  widget.PlatoExistente != null
+                      ? 'Actualizar Plato'
+                      : 'Guardar Plato',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _inputLabel(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: Color(0xFF637488),
+        fontWeight: FontWeight.bold,
+        fontSize: 14,
+      ),
+    );
+  }
+
+  Widget _customTextField(
+    TextEditingController controller,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    String? prefixText,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon:
+            prefixText != null
+                ? Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 8),
+                  child: Text(
+                    prefixText,
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 16,
+                    ),
+                  ),
+                )
+                : null,
+        prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF3F7FBF), width: 2),
+        ),
+      ),
+      style: TextStyle(fontSize: 16, color: Color(0xFF111418)),
     );
   }
 }

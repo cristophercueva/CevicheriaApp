@@ -9,9 +9,11 @@ import 'package:pedidos_app/descargar_reporte.dart';
 import 'package:pedidos_app/registrar_gasto.dart';
 import 'package:pedidos_app/registrar_ingreso.dart';
 import 'package:pedidos_app/registrar_plato.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'db_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RegistroPedidosApp extends StatefulWidget {
   @override
@@ -128,12 +130,26 @@ class _RegistroPedidosAppState extends State<RegistroPedidosApp> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () {
-                      // Aquí iría el link a tu APK
-                      // launch('https://tuservidor.com/app.apk');
+                    onPressed: () async {
+                      final url = Uri.parse(
+                        'https://github.com/cristophercueva/CevicheriaApp/releases/download/v1.0.0/app-release.apk',
+                      );
+
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      } else {
+                        // Manejo de error
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('No se pudo abrir el enlace')),
+                        );
+                      }
                     },
                     child: Text('Actualizar'),
                   ),
+
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -151,180 +167,173 @@ class _RegistroPedidosAppState extends State<RegistroPedidosApp> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cevicheria Los Gorditos')),
-      body: Column(
-        children: [
-          // CONTENEDOR SUPERIOR CON FECHA Y TOTALES
-          Container(
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _formatearFechaActual(),
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-
-                SizedBox(height: 10),
-                FutureBuilder<Map<String, double>>(
-                  future: _obtenerResumenHoy(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return Text('Cargando...');
-
-                    final data = snapshot.data!;
-                    final gastos = data['gastos']!;
-                    final ingresos = data['ingresos']!;
-                    final ganancia = data['ganancia']!;
-
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Total Gastos'),
-                            Text('S/ ${gastos.toStringAsFixed(2)}'),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text('Ganancia'),
-                            Text('S/ ${ganancia.toStringAsFixed(2)}'),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Total Ingresos'),
-                            Text('S/ ${ingresos.toStringAsFixed(2)}'),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
+      backgroundColor: Color(0xFFF9F9F9),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Text(
+          'Cevicheria Los Gorditos',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.black),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Hoy, ${_formatearFechaActual()}',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-          ),
-
-          // CONTENEDOR DE BOTONES
-          Expanded(
-            child: Container(
-              margin: EdgeInsets.all(10),
+            const SizedBox(height: 12),
+            Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
+                color: Color(0xFFE0E7FF),
+                borderRadius: BorderRadius.circular(20),
               ),
+              child: FutureBuilder<Map<String, double>>(
+                future: _obtenerResumenHoy(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  final data = snapshot.data!;
+                  final gastos = data['gastos']!;
+                  final ingresos = data['ingresos']!;
+                  final ganancia = data['ganancia']!;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildResumenItem('Total Gastos', gastos),
+                      _buildResumenItem('Ganancias', ganancia),
+                      _buildResumenItem('Total Ingresos', ingresos),
+                    ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Acciones Rápidas',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
                 children: [
-                  _botonAccion('Registrar Gasto', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => RegistrarGasto()),
-                    );
-
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-
-                  _botonAccion('Registrar Ingreso', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => RegistrarIngreso()),
-                    );
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-                  _botonAccion('Editar Gasto', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ListadoGastos()),
-                    );
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-                  _botonAccion('Editar Ingreso', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ListadoPedidos()),
-                    );
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-
-                  _botonAccion('Registrar Plato', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => RegistrarPlato()),
-                    );
-
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-                  _botonAccion('Editar Plato', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ListadoPlatos()),
-                    );
-
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-                  _botonAccion('Descargar Reporte', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => DescargarReporte()),
-                    );
-
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
-                  _botonAccion('Generar Scripts', () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => BackupPage()),
-                    );
-
-                    if (result == true) {
-                      setState(() {});
-                    }
-                  }),
+                  _botonAccionConIcono(
+                    Icons.add,
+                    'Registrar Gasto',
+                    () => _navegarA(context, RegistrarGasto()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.add,
+                    'Registrar Ingreso',
+                    () => _navegarA(context, RegistrarIngreso()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.edit,
+                    'Editar Gastos',
+                    () => _navegarA(context, ListadoGastos()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.edit,
+                    'Editar Ingresos',
+                    () => _navegarA(context, ListadoPedidos()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.restaurant_menu,
+                    'Registrar Plato',
+                    () => _navegarA(context, RegistrarPlato()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.restaurant_menu,
+                    'Editar Plato',
+                    () => _navegarA(context, ListadoPlatos()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.download,
+                    'Descargar Reporte',
+                    () => _navegarA(context, DescargarReporte()),
+                  ),
+                  _botonAccionConIcono(
+                    Icons.code,
+                    'Generate Scripts',
+                    () => _navegarA(context, BackupPage()),
+                    spanTwo: true,
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // WIDGET REUTILIZABLE PARA BOTONES
-  Widget _botonAccion(String texto, VoidCallback onPressed) {
+  Widget _buildResumenItem(String label, double value) {
+    return Column(
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.blueGrey)),
+        SizedBox(height: 4),
+        Text(
+          'S/ ${value.toStringAsFixed(2)}',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _botonAccionConIcono(
+    IconData icon,
+    String texto,
+    VoidCallback onPressed, {
+    bool spanTwo = false,
+  }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-        child: Text(
-          texto,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              backgroundColor: Color(0xFFE0E7FF),
+              child: Icon(icon, color: Color(0xFF0C7FF2)),
+            ),
+            SizedBox(height: 8),
+            Text(
+              texto,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _navegarA(BuildContext context, Widget pantalla) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => pantalla),
+    );
+    if (result == true) setState(() {});
   }
 }

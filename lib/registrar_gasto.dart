@@ -78,38 +78,115 @@ class _RegistrarGastoState extends State<RegistrarGasto> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Registrar Gasto')),
+      backgroundColor: const Color(0xFFF9F9F9),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF111418)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Registrar Gasto',
+          style: TextStyle(
+            color: Color(0xFF111418),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _nombreController,
-              decoration: InputDecoration(labelText: 'Nombre del gasto'),
-            ),
-            TextField(
-              controller: _precioController,
-              decoration: InputDecoration(labelText: 'Precio'),
+            _inputLabel('Nombre del gasto'),
+            _customTextField(_nombreController, 'Ej: Pescado fresco'),
+            SizedBox(height: 20),
+            _inputLabel('Precio'),
+            _customTextField(
+              _precioController,
+              '0.00',
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-            ),
-            TextField(
-              controller: _cantidadController,
-              decoration: InputDecoration(labelText: 'Cantidad'),
+              prefixText: 'S/ ',
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _guardarGasto,
-              child: Text(
-                widget.gastoExistente != null
-                    ? 'Actualizar Gasto'
-                    : 'Guardar Gasto',
+            _inputLabel('Cantidad'),
+            _customTextField(
+              _cantidadController,
+              'Ej: 5',
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF3F7FBF),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _guardarGasto,
+                child: Text(
+                  widget.gastoExistente != null
+                      ? 'Actualizar Gasto'
+                      : 'Guardar Gasto',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _inputLabel(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: Color.fromARGB(255, 5, 5, 5),
+        fontWeight: FontWeight.bold,
+        fontSize: 14,
+      ),
+    );
+  }
+
+  Widget _customTextField(
+    TextEditingController controller,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    String? prefixText,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white,
+        prefixText: prefixText,
+        prefixStyle: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF3F7FBF), width: 2),
+        ),
+      ),
+      style: TextStyle(fontSize: 16, color: Color(0xFF111418)),
     );
   }
 }

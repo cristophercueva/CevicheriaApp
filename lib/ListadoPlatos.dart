@@ -65,9 +65,23 @@ class _ListadoPlatosState extends State<ListadoPlatos> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Listado de Platos')),
+      backgroundColor: Color(0xFFF9F9F9),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 2,
+        title: Text(
+          'Listado de Platos',
+          style: TextStyle(
+            color: Color(0xFF111418),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Color(0xFF111418)),
+      ),
       body: FutureBuilder<List<Plato>>(
         future: _platosFuturos,
         builder: (context, snapshot) {
@@ -79,30 +93,76 @@ class _ListadoPlatosState extends State<ListadoPlatos> {
             return Center(child: Text('❌ Error al cargar los platos'));
           }
 
-          final plato = snapshot.data;
+          final platos = snapshot.data ?? [];
 
-          if (plato == null || plato.isEmpty) {
+          if (platos.isEmpty) {
             return Center(child: Text('📭 No hay platos registrados.'));
           }
 
-          return ListView.separated(
-            itemCount: plato.length,
-            separatorBuilder: (_, __) => Divider(),
+          return ListView.builder(
+            padding: EdgeInsets.all(16),
+            itemCount: platos.length,
             itemBuilder: (context, i) {
-              final p = plato[i];
-              return ListTile(
-                title: Text('${p.plato} - S/ ${p.precio}'),
-                subtitle: Text('${p.tipo} - ${p.fecha.toLocal()}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+              final p = platos[i];
+              return Container(
+                margin: EdgeInsets.only(bottom: 16),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () => _editarPlato(p),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            p.plato,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: Color(0xFF111418),
+                            ),
+                          ),
+                          Text(
+                            p.tipo,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF637488),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Precio: S/ ${p.precio.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF637488),
+                            ),
+                          ),
+                          Text(
+                            _formatearFecha(p.fecha),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF99A0B0),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () => _confirmarEliminacion(context, p.id),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit, color: Color(0xFF3F7FBF)),
+                          onPressed: () => _editarPlato(p),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _confirmarEliminacion(context, p.id),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -111,6 +171,23 @@ class _ListadoPlatosState extends State<ListadoPlatos> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF3F7FBF),
+        child: Icon(Icons.add, size: 32),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => RegistrarPlato()),
+          );
+          if (result == true) {
+            setState(() {});
+          }
+        },
+      ),
     );
+  }
+
+  String _formatearFecha(DateTime fecha) {
+    return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
   }
 }
